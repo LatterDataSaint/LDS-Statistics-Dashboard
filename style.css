@@ -1,0 +1,386 @@
+/* ---------------- GLOBAL ---------------- */
+
+body {
+    font-family: Arial, sans-serif;
+    margin: 30px;
+}
+
+h1 {
+    text-align: center;
+    width: 100%;
+    margin: 20px 0px;
+	margin-bottom: 50px;
+}
+
+/* ---------------- TOP PANEL ---------------- */
+
+#top-panel {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 40px;
+    margin-bottom: 20px;
+}
+
+/* ---------------- DROPDOWNS ---------------- */
+
+#filters {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 260px;
+    margin-left: 100px;
+}
+
+.filter-row {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+}
+
+.filter-row span {
+    min-width: 150px;
+    text-align: right;
+    white-space: nowrap;
+    font-weight: bold;
+}
+
+.filter-row select {
+    width: 140px;
+    max-width: 140px;
+    min-width: 140px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ---------------- REGION IMAGE + NAME ---------------- */
+
+#region-info {
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    gap: 20px;
+    width: 500px;
+    margin-left: 0px;
+}
+
+
+#region-display img {
+    width: 150px;
+    height: 150px;
+    background: #eee;
+}
+
+#region-name {
+    position: absolute;
+    bottom: 0;
+    left: 80%;
+    transform: translateX(-50%);
+    font-size: 24px;
+    font-weight: bold;
+    white-space: nowrap;
+    pointer-events: none;
+}
+
+
+/* ---------------- SEPARATOR ---------------- */
+
+#top-separator {
+    border: none;
+    border-top: 2px solid rgb(200,200,200);
+    margin: 20px auto 25px auto;
+    width: 50%;
+}
+
+/* ---------------- SERIES CONTROLS ---------------- */
+
+#series-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+}
+
+#series-controls select {
+    width: 200px;
+    padding: 4px 6px;
+    font-size: 13px;
+}
+
+#swapSeries {
+    padding: 4px 10px;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+/* ---------------- CHART ---------------- */
+
+#chart {
+    width: 100%;
+    height: 600px;
+    margin-top: 20px;
+}
+
+#table-toolbar {
+    margin: 10px 0 6px 0;
+    text-align: left;
+}
+
+#copy-table-btn {
+    font-size: 13px;
+    padding: 4px 10px;
+    border: 1px solid #bbb;
+    background: #f8f8f8;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+#copy-table-btn:hover {
+    background: #eaeaea;
+}
+
+#copy-table-btn:disabled {
+    opacity: 0.6;
+    cursor: default;
+}
+
+/* ---------------- TABLE / STATS ---------------- */
+
+#comparison-hint {
+    font-size: 13px;
+    font-style: italic;
+    color: #555;
+    margin-bottom: 6px;
+    height: 18px;
+}
+
+#table-section {
+    margin-top: 400px;
+}
+
+#table-tabs {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.tab-buttons {
+    display: flex;
+    gap: 6px;
+}
+
+#copy-table-btn {
+    font-size: 13px;
+    padding: 4px 10px;
+    border: 1px solid #bbb;
+    background: #f8f8f8;
+    cursor: pointer;
+    border-radius: 4px;
+    white-space: nowrap;
+}
+
+
+#copy-table-btn:hover {
+    background: #eaeaea;
+}
+
+#copy-table-btn:disabled {
+    opacity: 0.6;
+    cursor: default;
+}
+
+.table-tab {
+    padding: 6px 14px;
+    border: 1px solid #bbb;
+    background: #f2f2f2;
+    cursor: pointer;
+    font-size: 14px;
+    border-radius: 4px 4px 0 0;
+}
+
+.table-tab.active {
+    background: white;
+    border-bottom: 1px solid white;
+    font-weight: bold;
+}
+
+.table-tab:not(.active):hover {
+    background: #e6e6e6;
+}
+
+/* Chart Data table: center all columns except Date */
+#stats table td:not(:first-child),
+#stats table th:not(:first-child) {
+    text-align: center;
+}
+
+/* Narrow, left-anchored Chart Data table */
+.chart-data-table {
+    width: auto;
+    max-width: 720px;
+    margin-left: 0;
+    margin-right: auto;
+}
+
+/* Optional: slightly tighter columns for chart data */
+.chart-data-table th,
+.chart-data-table td {
+    padding: 6px 10px;
+}
+
+/* Narrow, left-anchored Chart Data table */
+.chart-data-table {
+    width: auto;              /* don't stretch */
+    max-width: 720px;         /* adjust to taste */
+    margin-left: 0;           /* anchor left */
+    margin-right: auto;
+}
+
+/* Optional: slightly tighter columns for chart data */
+.chart-data-table th,
+.chart-data-table td {
+    padding: 6px 10px;
+}
+
+/* Prevent date wrapping in Chart Data table */
+.chart-data-table td:first-child,
+.chart-data-table th:first-child {
+    white-space: nowrap;
+}
+/* Header background for BOTH tables */
+#stats table thead th {
+    background-color: rgb(240, 240, 240);
+}
+
+/* Center-align numeric table columns */
+#stats table td:nth-child(1),
+#stats table td:nth-child(5),
+#stats table td:nth-child(6),
+#stats table td:nth-child(7),
+#stats table td:nth-child(8),
+#stats table td:nth-child(9),
+#stats table td:nth-child(10),
+#stats table td:nth-child(11),
+#stats table td:nth-child(12),
+#stats table td:nth-child(13),
+#stats table th:nth-child(1),
+#stats table th:nth-child(5),
+#stats table th:nth-child(6),
+#stats table th:nth-child(7),
+#stats table th:nth-child(8),
+#stats table th:nth-child(9),
+#stats table th:nth-child(10),
+#stats table th:nth-child(11),
+#stats table th:nth-child(12),
+#stats table th:nth-child(13) {
+    text-align: center;
+}
+
+/* Selected row highlight */
+#stats table tr.selected-row td {
+    background-color: rgb(202,222,239);
+}
+
+/* Sorted column highlight */
+#stats table td.sorted-col,
+#stats table th.sorted-col {
+    background-color: rgb(255,229,204);
+}
+
+/* Intersection cell: selected row + sorted column stays blue */
+#stats table tr.selected-row td.sorted-col {
+    background-color: rgb(202,222,239);
+}
+
+/* Table border + cell borders */
+#stats table {
+    border-collapse: collapse;
+    width: 100%;
+    border: 1px solid #ccc;
+}
+
+#stats table th,
+#stats table td {
+    border: 1px solid #ccc;
+    padding: 6px 8px;
+}
+
+/* Base table borders */
+#stats table {
+    border-collapse: collapse;
+}
+
+#stats th,
+#stats td {
+    border: 1px solid #ccc;
+}
+
+/* ============================= */
+/* Series A group borders        */
+/* ============================= */
+
+/* Left border of Series A (col 6) */
+#stats th:nth-child(6),
+#stats td:nth-child(6) {
+    border-left: 2px solid #000;
+}
+
+/* ============================= */
+/* Divider between A and B       */
+/* (right of col 8 / left of 9)  */
+/* ============================= */
+
+/* Right border of Series A (col 8) */
+#stats th:nth-child(8),
+#stats td:nth-child(8) {
+    border-right: 2px solid #000;
+}
+
+/* Left border of Series B (col 9) */
+#stats th:nth-child(9),
+#stats td:nth-child(9) {
+    border-left: 2px solid #000;
+}
+
+/* ============================= */
+/* Right border of Series B      */
+/* ============================= */
+
+/* Right border of Series B (col 11) */
+#stats th:nth-child(11),
+#stats td:nth-child(11) {
+    border-right: 2px solid #000;
+}
+
+#about-separator {
+    border: none;
+    border-top: 2px solid rgb(200, 200, 200);
+    margin: 40px auto 25px auto;
+    width: 90%;
+}
+
+#about-section {
+    max-width: 1600px;
+    margin: 0 auto 40px auto;
+    font-size: 13px;
+    color: #444;
+    line-height: 1.5;
+}
+
+#about-section p {
+    margin: 6px 0;
+}
+
+#about-section a {
+    color: #3366cc;
+    text-decoration: none;
+}
+
+#about-section a:hover {
+    text-decoration: underline;
+}

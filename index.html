@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>LDS Statistics Dashboard</title>
+
+    <!-- Plotly for charts -->
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
+    <!-- PapaParse for CSV loading -->
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<h1>LDS Statistics Dashboard</h1>
+
+<div id="top-panel">
+
+    <!-- REGION IMAGE + NAME -->
+    <div id="region-info">
+        <div id="region-display">
+            <img id="region-image" src="">
+        </div>
+
+        <div id="region-name"></div>
+    </div>
+
+    <!-- DROPDOWNS -->
+    <div id="filters">
+
+        <div class="filter-row">
+            <span>Continent:</span>
+            <select id="continent"></select>
+        </div>
+
+        <div class="filter-row">
+            <span>Country:</span>
+            <select id="country"></select>
+        </div>
+
+        <div class="filter-row">
+            <span>State (US/Canada):</span>
+            <select id="state"></select>
+        </div>
+
+        <div class="filter-row">
+            <span>Start Year:</span>
+            <select id="yearStart"></select>
+        </div>
+
+        <div class="filter-row">
+            <span>End Year:</span>
+            <select id="yearEnd"></select>
+        </div>
+
+    </div>
+
+</div>
+
+<hr id="top-separator">
+
+<!-- SERIES DROPDOWNS FOR TOP CHART -->
+<div id="series-controls">
+    <select id="seriesA"></select>
+
+    <button id="swapSeries">&lt;-- switch --&gt;</button>
+
+    <select id="seriesB"></select>
+</div>
+
+<!-- TOP CHART -->
+<div id="chart"></div>
+
+<!-- ===================== -->
+<!-- TABLE SECTION         -->
+<!-- ===================== -->
+
+<div id="table-section">
+	<div id="comparison-hint">
+		<em>Click any row to update charts with that region</em>
+	</div>
+	
+    <!-- TABLE TABS + COPY BUTTON -->
+    <div id="table-tabs">
+
+        <div class="tab-buttons">
+            <button class="table-tab active" data-tab="comparison">
+                Comparison by Country
+            </button>
+            <button class="table-tab" data-tab="chart">
+                Chart Data
+            </button>
+        </div>
+
+        <button id="copy-table-btn" title="Copy table to clipboard">
+            Copy
+        </button>
+
+    </div>
+
+    <!-- TABLE OUTPUT -->
+    <div id="stats"></div>
+
+</div>
+
+<hr id="about-separator">
+
+<div id="about-section">
+	<h2>Notes & Sources</h2>
+	<p>In the spirit of transparency and open data principles, this dataset may be used for any purpose and is released under the <a href="https://creativecommons.org/publicdomain/zero/1.0/" target="_blank" rel="noopener">Creative Commons CC0 1.0 Universal (Public Domain Dedication)</a>.</p>
+    <p>All data originates from either historical or current Facts and Statistics pages. A csv identifying the URLs for all Wayback Machine files used can be <a href="../data/historical_fs_sources.csv">downloaded here</a>.</p>
+    <p>A csv identifying the URLs for all of the current data can be <a href="../data/current_fs_sources.csv">downloaded here</a>.</p>
+	<p>My GitHub: <a href="https://github.com/LatterDataSaint" target="_blank" rel="noopener noreferrer">https://github.com/LatterDataSaint</a></p>
+    <p>For any inquiries, comments, suggestions, or to report a bug you can find me here: <a href="https://www.reddit.com/user/latter_data_saint/" target="_blank" rel="noopener noreferrer">latter_data_saint</a></p>
+</div>
+
+<!-- SCRIPTS -->
+<script src="script.js"></script>
+<script src="table_script.js"></script>
+
+</body>
+</html>
