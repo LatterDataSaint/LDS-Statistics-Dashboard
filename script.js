@@ -192,7 +192,7 @@ function populateFilters() {
         updateCountryDropdown();
         updateStateDropdown();
         updateRegionDisplay();
-        updateSeriesDropdownsForCurrentSelection(true);
+        updateSeriesDropdownsForCurrentSelection(false);
         updateChart();
 		updateTable();
     });
@@ -200,14 +200,14 @@ function populateFilters() {
     document.getElementById("country").addEventListener("change", () => {
         updateStateDropdown();
         updateRegionDisplay();
-        updateSeriesDropdownsForCurrentSelection(true);
+        updateSeriesDropdownsForCurrentSelection(false);
         updateChart();
 		updateTable();
     });
 
     document.getElementById("state").addEventListener("change", () => {
         updateRegionDisplay();
-        updateSeriesDropdownsForCurrentSelection(true);
+        updateSeriesDropdownsForCurrentSelection(false);
         updateChart();
 		updateTable();
     });

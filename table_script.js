@@ -126,9 +126,6 @@ function getSelectedRegionKey() {
  *************************************************************/
 
 function buildTableData() {
-    const continentSel = document.getElementById("continent").value;
-    const countrySel = document.getElementById("country").value;
-
     const aField = document.getElementById("seriesA").value;
     const bField = document.getElementById("seriesB").value;
 
@@ -154,61 +151,79 @@ function buildTableData() {
 
     const rows = [];
 
-    for (const [key, records] of groups.entries()) {
-        const [continent, country, state] = key.split("|");
+	for (const [key, records] of groups.entries()) {
+		const [continent, country, state] = key.split("|");
 
-        // Sort chronologically
-        records.sort((a, b) => a.year - b.year);
+		// Sort chronologically
+		records.sort((a, b) => a.year - b.year);
 
-        // ---- Series A ----
-        const aStartRow = records.find(r => r.year >= yearStart && isNumeric(r[aField]));
-        const aEndRow = [...records].reverse().find(r => isNumeric(r[aField]));
+		// ---- Series A ----
+		// Earliest value in startYear
+		const aStartRow = records.find(r =>
+			r.year === yearStart && isNumeric(r[aField])
+		);
 
-        const aStart = aStartRow ? Number(aStartRow[aField]) : null;
-        const aEnd = aEndRow ? Number(aEndRow[aField]) : null;
+		// Latest value in endYear
+		const aEndRow = [...records].reverse().find(r =>
+			r.year === yearEnd && isNumeric(r[aField])
+		);
 
-        // ---- Series B ----
-        const bStartRow = records.find(r => r.year >= yearStart && isNumeric(r[bField]));
-        const bEndRow = [...records].reverse().find(r => isNumeric(r[bField]));
+		const aStart = aStartRow ? Number(aStartRow[aField]) : null;
+		const aEnd   = aEndRow   ? Number(aEndRow[aField])   : null;
 
-        const bStart = bStartRow ? Number(bStartRow[bField]) : null;
-        const bEnd = bEndRow ? Number(bEndRow[bField]) : null;
+		// ---- Series B ----
+		// Earliest value in startYear
+		const bStartRow = records.find(r =>
+			r.year === yearStart && isNumeric(r[bField])
+		);
 
-        // ---- Membership (always endYear / most recent in range) ----
-        const membershipRow = [...records].reverse()
-            .find(r => isNumeric(r["Total Church Membership"]));
+		// Latest value in endYear
+		const bEndRow = [...records].reverse().find(r =>
+			r.year === yearEnd && isNumeric(r[bField])
+		);
 
-        const membershipLatest = membershipRow
-            ? Number(membershipRow["Total Church Membership"])
-            : null;
+		const bStart = bStartRow ? Number(bStartRow[bField]) : null;
+		const bEnd   = bEndRow   ? Number(bEndRow[bField])   : null;
 
-        // ---- Ratio (A per B, end values) ----
-        const ratio =
-            aEnd != null && bEnd != null && bEnd !== 0
-                ? aEnd / bEnd
-                : null;
+		// ---- Membership (always most recent in range) ----
+		const membershipRow = records.find(r =>
+			r.year === yearEnd &&
+			isNumeric(r["Total Church Membership"])
+		);
 
-        rows.push({
-            key,
-            continent,
-            country,
-            state,
+		const membershipLatest = membershipRow
+			? Number(membershipRow["Total Church Membership"])
+			: null;
 
-            membershipLatest,
 
-            aStart,
-            aEnd,
-            aPct: pctChange(aStart, aEnd),
+		// ---- Ratio (A per B, end values) ----
+		const ratio =
+			aEnd != null && bEnd != null && bEnd !== 0
+				? aEnd / bEnd
+				: null;
 
-            bStart,
-            bEnd,
-            bPct: pctChange(bStart, bEnd),
+		rows.push({
+			key,
+			continent,
+			country,
+			state,
 
-            ratio
-        });
-    }
+			membershipLatest,
 
-    return rows;
+			aStart,
+			aEnd,
+			/*aStartYearActual,*/
+			aPct: pctChange(aStart, aEnd),
+
+			bStart,
+			bEnd,
+			/*bStartYearActual,*/
+			bPct: pctChange(bStart, bEnd),
+
+			ratio
+		});
+	}
+	return { rows };
 }
 
 
@@ -216,7 +231,7 @@ function buildTableData() {
  *  Render table
  *************************************************************/
 
-function renderStatsTable(rows) {
+function renderStatsTable({ rows }) {
     const container = document.getElementById("stats");
     if (!container) return;
 
@@ -234,14 +249,13 @@ function renderStatsTable(rows) {
         { key: "state", label: "State / Province" },
         { key: "membershipLatest", label: `Membership (${endYear})` },
 
-        { key: "aStart", label: startYear },
-        { key: "aEnd",   label: endYear },
+		{ key: "aStart", label: startYear },
+		{ key: "aEnd",   label: endYear },
         { key: "aPct",   label: "% Change" },
 
-        { key: "bStart", label: startYear },
-        { key: "bEnd",   label: endYear },
+		{ key: "bStart", label: startYear },
+		{ key: "bEnd",   label: endYear },
         { key: "bPct",   label: "% Change" },
-
         { key: "ratio",  label: `${aField} per ${bField}` }
     ];
 
@@ -502,8 +516,8 @@ function flashCopySuccess() {
 
 function updateTable() {
     if (activeTableTab === "comparison") {
-        const rows = buildTableData();
-        renderStatsTable(rows);
+		const tableData = buildTableData();
+		renderStatsTable(tableData);
     } else {
         const rows = buildChartDataTable();
         renderChartDataTable(rows);
