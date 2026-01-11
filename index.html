@@ -16,13 +16,14 @@
 <body>
 
 <h1>LDS Statistics Dashboard</h1>
-
+<h2 class="dashboard-subtitle">
+    A visual summary of the Facts and Statistics pages of The Church of Jesus Christ of Latter-day Saints.
+</h2>
 <div id="top-panel">
-
     <!-- REGION IMAGE + NAME -->
     <div id="region-info">
         <div id="region-display">
-            <img id="region-image" src="">
+            <img id="region-image">
         </div>
 
         <div id="region-name"></div>
@@ -60,7 +61,35 @@
 
 </div>
 
+<div id="about-row">
+
+    <div id="about">
+        <a id="about-link" target="_blank" href="about.html">About this Site</a>
+    </div>
+    <div id="normalized-toggle">
+        <label>
+            <input type="checkbox" id="use-normalized" checked>
+            Use Normalized Data
+            (<a id="normalized-link" target="_blank" href="about.html#normalized-series">what's this?</a>)
+        </label>
+    </div>
+
+</div>
+
+
 <hr id="top-separator">
+<div id="dashboard-summary-wrapper">
+    <div id="dashboard-summary-box">
+        <p>
+            The Church of Jesus Christ of Latter-day Saints has reported statistical information on its
+            <em>Facts and Statistics</em> pages since 2012. This dashboard draws from both current and
+            archived versions of those pages to allow for comparisons across regions and over time.
+            A distinctive feature of the dashboard is the ability to select any two available datasets
+            and automatically generate a <em>Series A per Series B</em> chart, allowing users to explore
+            ratios and relationships that are not explicitly reported.
+        </p>
+    </div>
+</div>
 
 <!-- SERIES DROPDOWNS FOR TOP CHART -->
 <div id="series-controls">
@@ -110,11 +139,7 @@
 
 <div id="about-section">
 	<h2>Notes & Sources</h2>
-	<p>In the spirit of transparency and open data principles, this dataset may be used for any purpose and is released under the <a href="https://creativecommons.org/publicdomain/zero/1.0/" target="_blank" rel="noopener">Creative Commons CC0 1.0 Universal (Public Domain Dedication)</a>.</p>
-    <p>All data originates from either historical or current Facts and Statistics pages. A csv identifying the URLs for all Wayback Machine files used can be <a href="data/historical_fs_sources.csv">downloaded here</a>.</p>
-    <p>A csv identifying the URLs for all of the current data can be <a href="data/current_fs_sources.csv">downloaded here</a>.</p>
-	<p>My GitHub: <a href="https://github.com/LatterDataSaint" target="_blank" rel="noopener noreferrer">https://github.com/LatterDataSaint</a></p>
-    <p>For any inquiries, comments, suggestions, or to report a bug you can find me here: <a href="https://www.reddit.com/user/latter_data_saint/" target="_blank" rel="noopener noreferrer">latter_data_saint</a></p>
+	<p>See the <a target="_blank" href="about.html">About this Site</a> page for more information about this data, including sources.</p>
 </div>
 
 <!-- SCRIPTS -->

@@ -130,9 +130,9 @@ function buildTableData() {
     const bField = document.getElementById("seriesB").value;
 
     const yearStart = parseInt(document.getElementById("yearStart").value, 10);
-    const yearEnd = parseInt(document.getElementById("yearEnd").value, 10);
+    const yearEnd   = parseInt(document.getElementById("yearEnd").value, 10);
 
-    // Group by continent|country|state
+    // Group rows by continent|country|state
     const groups = new Map();
 
     for (const r of rawData) {
@@ -151,81 +151,67 @@ function buildTableData() {
 
     const rows = [];
 
-	for (const [key, records] of groups.entries()) {
-		const [continent, country, state] = key.split("|");
+    for (const [key, records] of groups.entries()) {
+        const [continent, country, state] = key.split("|");
 
-		// Sort chronologically
-		records.sort((a, b) => a.year - b.year);
+        // Sort chronologically (same as chart)
+        records.sort((a, b) => a.date - b.date);
 
-		// ---- Series A ----
-		// Earliest value in startYear
-		const aStartRow = records.find(r =>
-			r.year === yearStart && isNumeric(r[aField])
-		);
+        // Resolve normalized / gap-filled series
+        const aSeries = getSeriesData(records, aField);
+        const bSeries = getSeriesData(records, bField);
 
-		// Latest value in endYear
-		const aEndRow = [...records].reverse().find(r =>
-			r.year === yearEnd && isNumeric(r[aField])
-		);
+        // ---- Series A start/end ----
+        const aStartIdx = records.findIndex(r => r.year === yearStart);
+        const aEndIdx   = records.map(r => r.year).lastIndexOf(yearEnd);
 
-		const aStart = aStartRow ? Number(aStartRow[aField]) : null;
-		const aEnd   = aEndRow   ? Number(aEndRow[aField])   : null;
+        const aStart = aStartIdx >= 0 ? aSeries[aStartIdx] ?? null : null;
+        const aEnd   = aEndIdx   >= 0 ? aSeries[aEndIdx]   ?? null : null;
 
-		// ---- Series B ----
-		// Earliest value in startYear
-		const bStartRow = records.find(r =>
-			r.year === yearStart && isNumeric(r[bField])
-		);
+        // ---- Series B start/end ----
+        const bStartIdx = records.findIndex(r => r.year === yearStart);
+        const bEndIdx   = records.map(r => r.year).lastIndexOf(yearEnd);
 
-		// Latest value in endYear
-		const bEndRow = [...records].reverse().find(r =>
-			r.year === yearEnd && isNumeric(r[bField])
-		);
+        const bStart = bStartIdx >= 0 ? bSeries[bStartIdx] ?? null : null;
+        const bEnd   = bEndIdx   >= 0 ? bSeries[bEndIdx]   ?? null : null;
 
-		const bStart = bStartRow ? Number(bStartRow[bField]) : null;
-		const bEnd   = bEndRow   ? Number(bEndRow[bField])   : null;
+        // ---- Membership (latest in range, unchanged logic) ----
+        const membershipRow = [...records].reverse().find(r =>
+            isNumeric(r["Total Church Membership"])
+        );
 
-		// ---- Membership (always most recent in range) ----
-		const membershipRow = records.find(r =>
-			r.year === yearEnd &&
-			isNumeric(r["Total Church Membership"])
-		);
+        const membershipLatest = membershipRow
+            ? Number(membershipRow["Total Church Membership"])
+            : null;
 
-		const membershipLatest = membershipRow
-			? Number(membershipRow["Total Church Membership"])
-			: null;
+        // ---- Ratio (end values) ----
+        const ratio =
+            aEnd != null && bEnd != null && bEnd !== 0
+                ? aEnd / bEnd
+                : null;
 
+        rows.push({
+            key,
+            continent,
+            country,
+            state,
 
-		// ---- Ratio (A per B, end values) ----
-		const ratio =
-			aEnd != null && bEnd != null && bEnd !== 0
-				? aEnd / bEnd
-				: null;
+            membershipLatest,
 
-		rows.push({
-			key,
-			continent,
-			country,
-			state,
+            aStart,
+            aEnd,
+            aPct: pctChange(aStart, aEnd),
 
-			membershipLatest,
+            bStart,
+            bEnd,
+            bPct: pctChange(bStart, bEnd),
 
-			aStart,
-			aEnd,
-			/*aStartYearActual,*/
-			aPct: pctChange(aStart, aEnd),
+            ratio
+        });
+    }
 
-			bStart,
-			bEnd,
-			/*bStartYearActual,*/
-			bPct: pctChange(bStart, bEnd),
-
-			ratio
-		});
-	}
-	return { rows };
+    return { rows };
 }
-
 
 /*************************************************************
  *  Render table
@@ -374,9 +360,9 @@ function buildChartDataTable() {
     const selB = document.getElementById("seriesB").value;
 
     const yearStart = parseInt(document.getElementById("yearStart").value, 10);
-    const yearEnd = parseInt(document.getElementById("yearEnd").value, 10);
+    const yearEnd   = parseInt(document.getElementById("yearEnd").value, 10);
 
-    // IMPORTANT: same filtering logic as updateChart
+    // SAME filtering logic as updateChart
     const rows = rawData.filter(r =>
         isFinite(r.year) &&
         r.year >= yearStart &&
@@ -402,9 +388,16 @@ function buildChartDataTable() {
         )
     );
 
-    return rows.map(r => {
-        const a = toNumberOrNull(r[selA]);
-        const b = toNumberOrNull(r[selB]);
+    // IMPORTANT: same sort as chart
+    rows.sort((a, b) => a.date - b.date);
+
+    // ✅ Use normalized / gap-filled data
+    const seriesA = getSeriesData(rows, selA);
+    const seriesB = getSeriesData(rows, selB);
+
+    return rows.map((r, i) => {
+        const a = seriesA[i];
+        const b = seriesB[i];
 
         return {
             timestamp: r.timestamp,
@@ -417,6 +410,7 @@ function buildChartDataTable() {
         };
     });
 }
+
 
 function renderChartDataTable(rows) {
     const container = document.getElementById("stats");

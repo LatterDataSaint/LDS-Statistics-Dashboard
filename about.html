@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>LDS Statistics Dashboard - About</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<h1>About this Site</h1>
+<div id="about-row">
+    <div id="about"><a id='about-link' href='index.html'>Return to Dashboard</a></div>
+</div>
+<hr id="top-separator">
+
+<div id="about-section">
+
+    <h2>Overview</h2>
+
+    <p>
+        This site is meant to be a convenient location to view and download the historical and current
+        statistical data that has been reported by
+        <em>The Church of Jesus Christ of Latter-day Saints</em> on its Facts and Statistics pages.
+    </p>
+
+    <p>
+        This page is privately developed and maintained and is not affiliated with the LDS church.
+        The data is provided as-is with no guarantee of its accuracy. Sources and the means to verify them are described in the Methodology section below.
+    </p>
+	<p>
+        In the spirit of transparency and open data principles, this dataset may be used for any purpose and is released under the <a href="https://creativecommons.org/publicdomain/zero/1.0/" target="_blank" rel="noopener">Creative Commons CC0 1.0 Universal (Public Domain Dedication)</a>.
+    </p>
+    <p>
+        For any inquiries, comments, suggestions, or to report a bug you can find me here: <a href="https://www.reddit.com/user/latter_data_saint/" target="_blank" rel="noopener noreferrer">latter_data_saint</a>.
+    </p>
+   	<p>
+        My GitHub: <a href="https://github.com/LatterDataSaint" target="_blank" rel="noopener noreferrer">https://github.com/LatterDataSaint</a>
+    </p>
+
+    <h2>Methodology</h2>
+
+    <p>
+        Since 2012, the LDS Church has reported global and regional metrics for membership and
+        organizational data. Snapshots of these pages are periodically archived by the Wayback
+        Machine.
+    </p>
+
+    <p>
+        To create the dataset for this dashboard, at least one snapshot per month was sought.
+        If a monthly snapshot was not available, the next available snapshot was used.
+    </p>
+    <p>
+        Links to all of the Wayback Machine snapshots used for the <em>historical</em> data (pre- December 2025) on this page can be found in <a target='_blank' href='https://raw.githubusercontent.com/LatterDataSaint/LDS-Statistics-Dashboard/refs/heads/main/data/historical_fs_sources.csv'>this csv file</a>. 
+    </p>
+    <p>
+        A csv identifying the links for all of the <em>current</em> data can be <a target='_blank' href='https://github.com/LatterDataSaint/LDS-Statistics-Dashboard/blob/main/data/current_fs_sources.csv' >downloaded here</a>.
+    </p>
+    <p>
+        Verification of the data on this site can be done by visiting the links and reviewing the reported figures.
+    </p>
+
+    <h2 id="normalized-series">Using the <em>Normalized</em> Facts and Statistics Pages</h2>
+
+    <p>
+        Over time, the Facts and Statistics pages have used different terminology for the same
+        underlying statistic. For example, “Family History Centers” was used from 2012 to 2023,
+        after which it was changed to “Family Search Centers” from 2023 to 2025, and then returned 
+        to "Family History Centers." The normalized dataset combines series whose only apparent difference is the reported name.
+    </p>
+
+    <p>
+        Unchecking the "Use Normalized Data" box will result in the data series being broken up into its 
+        original reported names which will be more historically literal but will also be less useful 
+        for visualizing and interpreting the data since it will create gaps in the charts.
+    </p>
+    
+    <p>
+        The table below summarizes how the normalized series were created by combining the corresponding raw data series. 
+        If no normalization was needed, the table shows "n/a" for the raw series name.
+    </p>
+
+    <table class="normalized-series-table">
+        <thead>
+            <tr>
+                <th>Normalized Series Name</th>
+                <th>Corresponding Raw Series Names</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>
+                    <strong>Total Church Membership</strong>
+                </td>
+                <td>
+                    <em>n/a</em>
+                </td>
+            </tr>
+
+            <tr>
+                <td>
+                    <strong>Congregations</strong>
+                </td>
+                <td>
+                    <em>n/a</em>
+                </td>
+            </tr>
+
+            <tr>
+                <td>
+                    <strong>Missions</strong>
+                </td>
+                <td>
+                    <em>n/a</em>
+                </td>
+            </tr>
+
+            <tr>
+                <td>
+                    <strong>Missionaries</strong>
+                </td>
+                <td>
+                    <strong>Missionaries</strong> <span class="date-range">(December 2025 - Present)</span><br>
+                    <strong>Full-Time Teaching Missionaries</strong> <span class="date-range">(May 2023 – August 2025)</span><br>
+                    <strong>Missionaries</strong> <span class="date-range">(April 2012 - April 2023)</span>
+                </td>
+            </tr>
+
+            <tr>
+                <td>
+                    <strong>Senior Service Missionaries</strong>
+                </td>
+                <td>
+                    <em>Has not been reported in the Facts and Statistics pages since August 2025.</em><br>
+                    <strong>Senior Service Missionaries</strong> <span class="date-range">(February 2024 – August 2025)</span><br>
+                    <strong>Senior Church-Service Missionaries</strong> <span class="date-range">(May 2023 – January 2024)</span>
+                </td>
+            </tr>
+
+            <tr>
+                <td>
+                    <strong>Young Service Missionaries</strong>
+                </td>
+                <td>
+                    <em>Has not been reported in the Facts and Statistics pages since August 2025.</em><br>
+                    <strong>Young Service Missionaries</strong> <span class="date-range">(February 2024 – August 2025)</span><br>
+                    <strong>Young Church-Service Missionaries</strong> <span class="date-range">(May 2023 – January 2024)</span>
+                </td>
+            </tr>
+
+            <tr>
+                <td>
+                    <strong>Welfare Services Missionaries (Incl. Humanitarian Service Missionaries)</strong>
+                </td>
+                <td>
+                    <em>Starting May 2023, this series was separated into Senior and Youth Service Missionaries. From 
+                        May 2023 to August 2025, this series shows the sum of those two series. Senior and Youth Service 
+                        Missionaries have not been reported since August 2025.</em>
+                </td>
+            </tr>
+
+            <tr>
+                <td>
+                    <strong>Missionary Training Centers</strong><br>
+                </td>
+                <td>
+                    <em>Has not been reported in the Facts and Statistics pages since April 2023.</em><br>
+                    <strong>Missionary Training Centers</strong> <span class="date-range">(October 2020 – April 2023)</span><br>
+                    <strong>Training Centers</strong> <span class="date-range">(July 2018 – August 2020)</span><br>
+                    <strong>Missionary Training Centers</strong> <span class="date-range">(April 2012 – March 2018)</span>
+                </td>
+            </tr>
+
+            <tr>
+                <td>
+                    <strong>Institute Student Enrollment</strong>
+                </td>
+                <td>
+                    <strong>Institute Student Enrollment</strong> <span class="date-range">(December 2025 – Present)</span><br>
+                    <strong>Adult Students Enrollment</strong> <span class="date-range">(November 2022 – August 2025)</span><br>
+                    <strong>Institute Student Enrollment</strong> <span class="date-range">(April 2012 – October 2025)</span>
+                </td>
+            </tr>
+
+            <tr>
+                <td>
+                    <strong>Seminary Student Enrollment</strong>
+                </td>
+                <td>
+                    <strong>Seminary Student Enrollment</strong> <span class="date-range">(December 2025 – Present)</span><br>
+                    <strong>Youth Students Enrollment</strong> <span class="date-range">(November 2022 – August 2025)</span><br>
+                    <strong>Seminary Student Enrollment</strong> <span class="date-range">(April 2012 – October 2025)</span>
+                </td>
+            </tr>
+
+            <tr>
+                <td>
+                    <strong>Church Materials Languages</strong><br>
+                </td>
+                <td>
+                    <em>Has not been reported in the Facts and Statistics pages since April 2025.</em><br>
+                    <strong>Church Materials Languages</strong> <span class="date-range">(July 2016 – April 2025)</span><br>
+                    <strong>Published Languages</strong> <span class="date-range">(July 2013 – March 2016)</span>
+                </td>
+            </tr>
+
+            <tr>
+                <td>
+                    <strong>Countries Receiving Humanitarian Aid (Since 1985)</strong>
+                </td>
+                <td>
+                    <em>n/a</em>
+                </td>
+            </tr>
+
+            <tr>
+                <td>
+                    <strong>Countries with Family History Centers</strong><br>
+                </td>
+                <td>
+                    <strong>Countries with Family History Centers</strong> <span class="date-range">(December 2025 – Present)</span><br>
+                    <strong>Countries with FamilySearch Centers</strong> <span class="date-range">(February 2023 – August 2025)</span><br>
+                    <strong>Countries with Family History Centers</strong> <span class="date-range">(April 2012 – January 2023)</span>
+                </td>
+            </tr>
+
+            <tr>
+                <td>
+                    <strong>Family History Centers</strong><br>
+                </td>
+                <td>
+                    <strong>Family History Centers</strong> <span class="date-range">(December 2025 – Present)</span><br>
+                    <strong>FamilySearch Centers</strong> <span class="date-range">(February 2023 – August 2025)</span><br>
+                    <strong>Family History Centers</strong> <span class="date-range">(April 2012 – January 2023)</span>
+                </td>
+            </tr>
+
+            <tr>
+                <td>
+                    <strong>Universities & Colleges</strong>
+                </td>
+                <td>
+                    <em>n/a</em>
+                </td>
+            </tr>
+
+            <tr>
+                <td>
+                    <strong>Operating Temples*</strong><br>
+                </td>
+                <td>
+                    <strong>Operating Temples</strong> <span class="date-range">(December 2025 – Present)</span><br>
+                    <strong>Temples</strong> <span class="date-range">(May 2024 - August 2025)</span><br>
+                    <strong>Temples (as of October 2, 20222)</strong> <span class="date-range">(May 2023 – April 2024)</span><br>
+                    <strong>Temples (including operating and announced)</strong> <span class="date-range">(April 2023)</span><br>
+                    <strong>Temples</strong> <span class="date-range">(April 2012 – March 2023)</span>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2>*Notes on Operating Temples</h2>
+
+    <p>
+        When publishing temple data, the Facts and Statistics pages have reported numbers that are a mix of operating temples and 
+        announced temples without distinguishing between the two which makes it impossible to combine them into a single normalized 
+        dataset. For this reason, the <strong>Operating Temples</strong> as reported in this dashboard does not come directly from 
+        the Facts and Statistics pages but instead comes from the <a target='_blank' href='https://en.wikipedia.org/wiki/List_of_temples_(LDS_Church)'>Wikipedia temple timeline</a>.
+    </p>
+    <p>
+        Although the Facts and Statistics pages have started reporting "Operating Temples" again, the wikipedia timeline will continue to 
+        be used by this dashboard indefinitely.
+    </p>
+
+</div>
+
+<hr id="about-separator">
+</body>
+</html>

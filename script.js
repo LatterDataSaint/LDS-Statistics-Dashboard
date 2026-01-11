@@ -1,4 +1,110 @@
 let rawData = [];
+let operatingTemplesWorld = [];
+
+const SERIES_A_COLOR = "#1f77b4"; // Plotly default blue
+const SERIES_B_COLOR = "#ff7f0e"; // Plotly default orange
+const PER_COLOR      = "#2ca02c"; // Plotly default green
+
+// ------------------ NORMALIZATION TOGGLE HELPERS------------------ //
+
+function isNormalizedMode() {
+    const cb = document.getElementById("use-normalized");
+    return cb ? cb.checked : true; // default to normalized
+}
+
+function reportNormalizationState(context = "") {
+    const state = isNormalizedMode() ? "ON (normalized)" : "OFF (raw)";
+    //console.log(`Normalization ${context}: ${state}`);
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    const normalizedCheckbox = document.getElementById("use-normalized");
+    if (normalizedCheckbox) {
+        normalizedCheckbox.addEventListener("change", () => {
+            updateSeriesDropdownsForCurrentSelection(true);
+        });
+    }
+
+});
+
+const NORMALIZED_SERIES_MAP = {
+    "Family History Centers": [
+        "Family History Centers",
+        "Family Search Centers"
+    ],
+
+    "Missionaries": [
+        "Missionaries",
+        "Full-Time Teaching Missionaries"
+    ],
+
+    "Countries with Family History Centers": [
+        "Countries with Family History Centers",
+        "Countries with Family Search Centers"
+    ],
+
+    "Church Materials Languages": [
+        "Published Languages",
+        "Church Materials Languages"
+    ],
+
+    "Seminary Students Enrollment": [
+        "Seminary Students Enrollment",
+        "Seminary Student Enrollment",
+        "Youth Students Enrollment"
+    ],
+
+    "Institute Student Enrollment": [
+        "Institute Students Enrollment",
+        "Institute Student Enrollment",
+        "Adult Students Enrollment"
+    ],
+
+    "Missionary Training Centers": [
+        "Missionary Training Centers",
+        "Training Centers"
+    ],
+
+    "Welfare Services Missionaries (Incl. Humanitarian Service Missionaries)": [
+        "Welfare Services Missionaries (Incl. Humanitarian Service Missionaries)"
+    ],
+
+    "Young Service Missionaries": [
+        "Young Service Missionaries",
+        "Young Church-Service Missionaries"
+    ],
+
+    "Senior Service Missionaries": [
+        "Senior Service Missionaries",
+        "Senior Church-Service Missionaries"
+    ],
+
+    "Temples": [
+        "Temples",
+        "Temples (as of October 2, 2022)",
+        "Temples (includes operating and announced)"
+    ],
+
+    "Operating Temples": [
+        "__OPERATING_TEMPLE_SERIES__"
+    ]
+
+};
+
+function getNormalizedSeriesName(rawName) {
+    if (!isNormalizedMode()) return rawName;
+
+    for (const [normalized, rawList] of Object.entries(NORMALIZED_SERIES_MAP)) {
+        if (rawList.includes(rawName)) {
+            return normalized;
+        }
+    }
+    return rawName;
+}
+
+function isNormalizedSeries(seriesName) {
+    return isNormalizedMode() && NORMALIZED_SERIES_MAP[seriesName];
+}
 
 // ------------------ FORMAT LABELS ------------------ //
 
@@ -58,10 +164,23 @@ function toNumberOrNull(v) {
 // ------------------------- LOAD CSV ------------------------------ //
 
 async function loadData() {
-	const response = await fetch("data/lds_fs_countries_latest.csv");
-	const text = await response.text();
+    const response = await fetch("data/lds_fs_countries_latest.csv");
+    const text = await response.text();
 
     rawData = Papa.parse(text, { header: true }).data;
+
+    const HEADER_ALIASES = {
+        "universities_colleges": "Universities & Colleges"
+    };
+
+    // APPLY ALIASES AFTER PARSING
+    rawData.forEach(r => {
+        for (const [raw, display] of Object.entries(HEADER_ALIASES)) {
+            if (r[raw] !== undefined && r[display] === undefined) {
+                r[display] = r[raw];
+            }
+        }
+    });
 
     rawData.forEach(r => {
         const ts = String(r.timestamp || "");
@@ -80,15 +199,29 @@ async function loadData() {
         r.year = parseInt(year, 10);
     });
 
+    await loadOperatingTemplesWorld();
+
     populateFilters();
 
-    // Build series dropdowns AFTER filters exist and have default values
     initSeriesControls();
     updateSeriesDropdownsForCurrentSelection(true);
 
     updateRegionDisplay();
     updateChart();
-	updateTable();
+    updateTable();
+}
+
+async function loadOperatingTemplesWorld() {
+    const response = await fetch("data/op_temples_world_latest.csv");
+    const text = await response.text();
+
+    operatingTemplesWorld = Papa.parse(text, {
+        header: true,
+        dynamicTyping: true
+    }).data.map(r => ({
+        timestamp: r.timestamp,
+        value: r.operating_temples
+    }));
 }
 
 // ------------------------- REGION NAME / IMAGE ------------------------------ //
@@ -147,15 +280,22 @@ function updateRegionDisplay() {
     // FALLBACK
     // ------------------------------
     if (imgName) {
-        img.src = `images/${imgName}`;
-        img.style.display = "block";
+        const imagePath = `images/${imgName}`;
+
+        // Preload before swapping
+        const preload = new Image();
+        preload.onload = () => {
+            img.src = imagePath;
+            img.style.display = "block";
+        };
+        preload.src = imagePath;
+
     } else {
-        img.src = "";
+        img.removeAttribute("src"); // important: no empty src
         img.style.display = "none";
     }
+
 }
-
-
 
 function normalizeNameForFilename(name) {
     if (!name) return "";
@@ -165,6 +305,32 @@ function normalizeNameForFilename(name) {
         .trim()
         .replace(/\s+/g, "_"); // spaces to underscores
 }
+
+function normalizeSeriesHeaders(rawHeaders) {
+    if (!isNormalizedMode()) {
+        return [...rawHeaders];
+    }
+
+    const out = new Set();
+
+    rawHeaders.forEach(h => {
+        if (!h) return;
+
+        let normalized = h;
+
+        for (const [canonical, rawList] of Object.entries(NORMALIZED_SERIES_MAP)) {
+            if (rawList.includes(h)) {
+                normalized = canonical;
+                break;
+            }
+        }
+
+        out.add(normalized);
+    });
+
+    return Array.from(out);
+}
+
 
 
 // ---------------------- FILTER POPULATION ------------------------ //
@@ -186,7 +352,7 @@ function populateFilters() {
     fillDropdown("yearEnd", years);
 
     document.getElementById("yearStart").value = years[0];
-    document.getElementById("yearEnd").value = years.includes(2025) ? 2025 : years[years.length - 1];
+    document.getElementById("yearEnd").value = years.includes(2026) ? 2026 : years[years.length - 1];
 
     document.getElementById("continent").addEventListener("change", () => {
         updateCountryDropdown();
@@ -370,11 +536,58 @@ function getNumericHeadersForRows(rows) {
 function updateSeriesDropdownsForCurrentSelection(resetToDefaults) {
     const selA = document.getElementById("seriesA");
     const selB = document.getElementById("seriesB");
+
     if (!selA || !selB) return;
+
+    const isWorld =
+        document.getElementById("country")?.value === "World" &&
+        document.getElementById("continent")?.value === "Global";
+    const isSubWorldRegion = !isWorld;
+
 
     // Use region rows (ignoring year range) to decide what "exists" for that region
     const regionRows = getFilteredRowsForCurrentSelection(false);
-    const numericHeaders = getNumericHeadersForRows(regionRows);
+    const rawHeaders = getNumericHeadersForRows(regionRows);
+    let numericHeaders = normalizeSeriesHeaders(rawHeaders);
+
+    // For all non-World regions, Temples ALWAYS means Operating Temples
+    if (isSubWorldRegion) {
+        numericHeaders = numericHeaders.filter(h =>
+            ![
+                "Temples",
+                "Temples (as of October 2, 2022)",
+                "Temples (includes operating and announced)"
+            ].includes(h)
+        );
+
+        // Only add Operating Temples if there is temple data at all
+        const hasAnyTempleData = rawHeaders.some(h =>
+            [
+                "Temples",
+                "Temples (as of October 2, 2022)",
+                "Temples (includes operating and announced)"
+            ].includes(h)
+        );
+
+        if (hasAnyTempleData) {
+            numericHeaders.push("Operating Temples");
+        }
+    }
+
+    if (isNormalizedMode() && isWorld) {
+        // Remove all temple-related raw headers
+        numericHeaders = numericHeaders.filter(h =>
+            ![
+                "Temples",
+                "Temples (as of October 2, 2022)",
+                "Temples (includes operating and announced)"
+            ].includes(h)
+        );
+
+        // Add normalized series
+        numericHeaders.push("Operating Temples");
+    }
+
 
     // Keep prior selections if possible
     const prevA = selA.value;
@@ -429,23 +642,50 @@ function updateSeriesDropdownsForCurrentSelection(resetToDefaults) {
 
 // ------------------- DYNAMIC LABEL POSITIONING -------------------- //
 
+// ------------------- DYNAMIC LABEL POSITIONING -------------------- //
+
 function computeLabelPositions(gd) {
     const cd = gd.calcdata;
+    if (!cd || !cd.length) return;
 
-    const aPixels = cd[0].map(pt => pt.ya.l2p(pt.yp));
-    const bPixels = cd[1].map(pt => pt.ya.l2p(pt.yp));
-    const perPixels = cd[2].map(pt => pt.ya.l2p(pt.yp));
+    // Identify text traces by presence of .text
+    const textTraces = gd.data
+        .map((trace, i) => ({ trace, i }))
+        .filter(o => Array.isArray(o.trace.text));
+
+    if (textTraces.length < 2) return;
+
+    function safePixels(calcTrace) {
+        if (!calcTrace || !calcTrace.length) return null;
+
+        const pt = calcTrace[0];
+        if (!pt.ya || typeof pt.ya.l2p !== "function") return null;
+
+        return calcTrace.map(p => p.ya.l2p(p.yp));
+    }
+
+    // Expect: A text, B text, Per text — but do not assume
+    const aIdx = textTraces[0].i;
+    const bIdx = textTraces[1].i;
+    const perIdx = textTraces[2]?.i;
+
+    const aPixels = safePixels(cd[aIdx]);
+    const bPixels = safePixels(cd[bIdx]);
+    const perPixels = perIdx != null ? safePixels(cd[perIdx]) : null;
+
+    if (!aPixels || !bPixels) return;
 
     const posA = [];
     const posB = [];
     const posPer = [];
 
-    for (let i = 0; i < aPixels.length; i++) {
-        // Always force Per labels ABOVE line
-        posPer.push("top center");
+    const len = Math.min(aPixels.length, bPixels.length);
 
-        const aHasText = gd.data[0].text[i] !== "";
-        const bHasText = gd.data[1].text[i] !== "";
+    for (let i = 0; i < len; i++) {
+        if (perPixels) posPer.push("top center");
+
+        const aHasText = gd.data[aIdx].text[i] !== "";
+        const bHasText = gd.data[bIdx].text[i] !== "";
 
         if (!aHasText && !bHasText) {
             posA.push("none");
@@ -456,7 +696,9 @@ function computeLabelPositions(gd) {
         const pairs = [
             { s: "a", p: aPixels[i], has: aHasText },
             { s: "b", p: bPixels[i], has: bHasText }
-        ].filter(o => o.has).sort((x, y) => x.p - y.p); // smaller pixel = higher
+        ]
+            .filter(o => o.has)
+            .sort((x, y) => x.p - y.p);
 
         let pA = "middle center";
         let pB = "middle center";
@@ -479,12 +721,107 @@ function computeLabelPositions(gd) {
         posB.push(pB);
     }
 
-    Plotly.restyle(gd, {
-        textposition: [posA, posB, posPer]
+    const restylePayload = {};
+    restylePayload["textposition"] = [
+        posA,
+        posB,
+        perPixels ? posPer : undefined
+    ];
+
+    Plotly.restyle(gd, restylePayload);
+}
+
+
+// --------------------------- CHART ------------------------------- //
+function getSeriesData(rows, seriesName) {
+    if (!rows || !rows.length) return [];
+
+    const isWorld =
+        rows[0].country === "World" &&
+        rows[0].continent === "Global";
+
+    // ------------------------------------------------
+    // Operating Temples — World (normalized, special)
+    // ------------------------------------------------
+    if (
+        seriesName === "Operating Temples" &&
+        isNormalizedMode() &&
+        isWorld
+    ) {
+        const lookup = new Map(
+            operatingTemplesWorld.map(o => [
+                String(o.timestamp),
+                Number(o.value)
+            ])
+        );
+
+        return rows.map(r => {
+            const v = lookup.get(String(r.timestamp));
+            return Number.isFinite(v) ? v : null;
+        });
+    }
+
+    // ------------------------------------------------
+    // Operating Temples — non-World (alias to Temples)
+    // ------------------------------------------------
+    if (seriesName === "Operating Temples" && !isWorld) {
+        return rows.map(r => {
+            const v = r["Temples"];
+            return isNumeric(v) ? Number(v) : null;
+        });
+    }
+
+    // ------------------------------------------------
+    // Welfare Services Missionaries (legacy + split)
+    // ------------------------------------------------
+    if (seriesName === "Welfare Services Missionaries (Incl. Humanitarian Service Missionaries)") {
+        return rows.map(r => {
+            const legacy = r["Welfare Services Missionaries (Incl. Humanitarian Service Missionaries)"];
+
+            if (isNumeric(legacy) && Number(legacy) > 0) {
+                return Number(legacy);
+            }
+
+            const senior =
+                toNumberOrNull(r["Senior Service Missionaries"]) ??
+                toNumberOrNull(r["Senior Church-Service Missionaries"]);
+
+            const young =
+                toNumberOrNull(r["Young Service Missionaries"]) ??
+                toNumberOrNull(r["Young Church-Service Missionaries"]);
+
+            if (senior == null && young == null) return null;
+
+            return (senior ?? 0) + (young ?? 0);
+        });
+    }
+
+    // ------------------------------------------------
+    // GENERIC normalized-series resolver (THIS WAS MISSING)
+    // ------------------------------------------------
+    if (isNormalizedMode() && NORMALIZED_SERIES_MAP[seriesName]) {
+        const candidates = NORMALIZED_SERIES_MAP[seriesName]
+            .filter(h => !h.startsWith("__"));
+
+        return rows.map(r => {
+            for (const h of candidates) {
+                if (isNumeric(r[h])) {
+                    return Number(r[h]);
+                }
+            }
+            return null;
+        });
+    }
+
+    // ------------------------------------------------
+    // Default CSV-backed behavior (raw mode)
+    // ------------------------------------------------
+    return rows.map(r => {
+        const v = r[seriesName];
+        return isNumeric(v) ? Number(v) : null;
     });
 }
 
-// --------------------------- CHART ------------------------------- //
 
 function updateChart() {
     const continent = document.getElementById("continent").value;
@@ -524,8 +861,28 @@ function updateChart() {
 
     // If either selected field has no numeric values in THIS filtered range, force defaults
     function fieldHasAnyNumeric(field) {
+        // Operating Temples (normalized, world-only series)
+        if (field === "Operating Temples" && isNormalizedMode()) {
+            const isWorld = (continent === "Global" && country === "World");
+            return isWorld
+                ? operatingTemplesWorld.length > 0
+                : filtered.some(r => isNumeric(r["Temples"]));
+        }
+
+        // Normalized multi-source series
+        if (isNormalizedMode() && NORMALIZED_SERIES_MAP[field]) {
+            const rawCandidates = NORMALIZED_SERIES_MAP[field];
+            return filtered.some(r =>
+                rawCandidates.some(h => isNumeric(r[h]) && Number(r[h]) > 0)
+            );
+        }
+
+        // Default
         return filtered.some(r => isNumeric(r[field]));
     }
+
+
+
 
     const defaultA = "Total Church Membership";
     const defaultB = "Congregations";
@@ -553,8 +910,12 @@ function updateChart() {
     const yearTickText = yearsList.map(y => String(y));
 
     // Extract Series A and B
-    const seriesA = filtered.map(r => toNumberOrNull(r[seriesAField]));
-    const seriesB = filtered.map(r => toNumberOrNull(r[seriesBField]));
+    const seriesA = getSeriesData(filtered, seriesAField);
+    const seriesB = getSeriesData(filtered, seriesBField);
+
+    if (!Array.isArray(seriesA)) {
+        console.error("seriesA is not an array:", seriesAField, seriesA);
+    }
 
     // A per B (bottom chart)
     const per = seriesA.map((a, i) => {
@@ -582,59 +943,123 @@ function updateChart() {
             : ""
     );
 
-    // Hover: show A, B, and A/B
-    const customdata = filtered.map((r, i) => [
-        per[i],
-        seriesA[i],
-        seriesB[i]
-    ]);
+    const hovertext = filtered.map((r, i) => {
+        const a = seriesA[i];
+        const b = seriesB[i];
+        const p = per[i];
 
-    const traceA = {
+        const aText = (a == null || isNaN(a)) ? "-" : a.toLocaleString();
+        const bText = (b == null || isNaN(b)) ? "-" : b.toLocaleString();
+        const pText = (p == null || isNaN(p)) ? "-" : p.toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+
+        const dateStr = new Date(r.date).toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "short",
+            day: "numeric"
+        });
+        return (
+            `${dateStr}<br>` +
+            `${seriesAField}: ${aText}<br>` +
+            `${seriesBField}: ${bText}<br>` +
+            `${seriesAField} per ${seriesBField}: ${pText}`
+        );
+    });
+
+    const traceA_line = {
         x: dates,
         y: seriesA,
-        mode: "lines+markers+text",
+        mode: "lines+markers",
         name: seriesAField,
-        text: seriesALabels,
-		textposition: "top left",
         yaxis: "y",
         xaxis: "x",
-		connectgaps: false,
-        customdata,
-        hovertemplate:
-            "Date: %{x}<br>" +
-            `${seriesAField}: %{customdata[1]:,.0f}<br>` +
-            `${seriesBField}: %{customdata[2]:,.0f}<br>` +
-            `${seriesAField} per ${seriesBField}: %{customdata[0]:,.2f}<br>` +
-            "<extra></extra>"
+        connectgaps: false,
+
+        /*customdata,*/
+        hovertext,
+        hoverinfo: "text",
+
+        line:   { color: SERIES_A_COLOR },
+        marker: { color: SERIES_A_COLOR },
+
     };
+    const traceA_text = {
+        x: dates,
+        y: seriesA,
+        mode: "text+markers",
+        text: seriesALabels,
+        textposition: "top left",
+        yaxis: "y",
+        xaxis: "x",
 
-	const traceB = {
-		x: dates,
-		y: seriesB,
-		mode: "lines+markers+text",
-		name: seriesBField,
-		text: seriesBLabels,
-		textposition: "bottom right",
-		yaxis: "y2",
-		xaxis: "x",
-		connectgaps: false,
-		hoverinfo: "skip"
-	};
+        textfont: { color: SERIES_A_COLOR, size: 11 },
+        marker: { size: 12, opacity: 0 },
 
-    const tracePer = {
+        hoverinfo: "skip",
+        showlegend: false
+    };
+    const traceB_line = {
+        x: dates,
+        y: seriesB,
+        mode: "lines+markers",
+        name: seriesBField,
+        yaxis: "y2",
+        xaxis: "x",
+        connectgaps: false,
+
+        line:   { color: SERIES_B_COLOR },
+        marker: { color: SERIES_B_COLOR },
+
+        hoverinfo: "skip"
+    };
+    const traceB_text = {
+        x: dates,
+        y: seriesB,
+        mode: "text+markers",
+        text: seriesBLabels,
+        textposition: "bottom right",
+        yaxis: "y2",
+        xaxis: "x",
+
+        textfont: { color: SERIES_B_COLOR, size: 11 },
+        marker: { size: 12, opacity: 0 },
+
+        hoverinfo: "skip",
+        showlegend: false
+    };
+    const tracePer_line = {
         x: dates,
         y: per,
-        mode: "lines+markers+text",
+        mode: "lines+markers",
         name: `${seriesAField} per ${seriesBField}`,
+        yaxis: "y3",
+        xaxis: "x2",
+        connectgaps: false,
+
+        line:   { color: PER_COLOR },
+        marker: { color: PER_COLOR },
+
+        hovertemplate:
+            "Date: %{x}<br>" +
+            `%{y:,.2f}<br>` +
+            "<extra></extra>"
+    };
+    const tracePer_text = {
+        x: dates,
+        y: per,
+        mode: "text+markers",
         text: perLabels,
         textposition: "top center",
         yaxis: "y3",
         xaxis: "x2",
-		connectgaps: false,
-		hovertemplate:
-			"Date: %{x}<br>" +
-			`%{y:,.2f}<br>` +
-			"<extra></extra>"
+
+        textfont: { color: PER_COLOR, size: 11 },
+        marker: { size: 12, opacity: 0 },
+
+        hoverinfo: "skip",
+        showlegend: false
     };
 
     // --- Prevent label cutoff on PER (bottom chart) ---
@@ -689,7 +1114,8 @@ function updateChart() {
             side: "right",
 			zeroline: false,
 			showline: false,
-            showgrid: false
+            showgrid: false,
+            layer: "below traces"
         },
 
         xaxis2: {
@@ -787,9 +1213,19 @@ function updateChart() {
         ]
     };
 
-    Plotly.newPlot("chart", [traceA, traceB, tracePer], layout)
-        .then(gd => computeLabelPositions(gd));
-		
+    Plotly.newPlot(
+        "chart",
+        [
+            traceA_line,
+            traceB_line,
+            traceA_text,
+            traceB_text,
+            tracePer_line,
+            tracePer_text
+        ],
+        layout
+    ).then(gd => computeLabelPositions(gd));
+
 	updateTable();
 }
 

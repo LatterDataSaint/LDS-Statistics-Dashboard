@@ -9,7 +9,8 @@ h1 {
     text-align: center;
     width: 100%;
     margin: 20px 0px;
-	margin-bottom: 50px;
+	margin-bottom: 20px;
+    color: rgb(75,75,75);
 }
 
 /* ---------------- TOP PANEL ---------------- */
@@ -20,6 +21,40 @@ h1 {
     align-items: flex-start;
     gap: 40px;
     margin-bottom: 20px;
+}
+/* ---------------- DASHBOARD SUBTITLE ---------------- */
+
+.dashboard-subtitle {
+    margin-top: 6px;
+    margin-bottom: 24px;
+    font-size: 16px;
+    font-weight: normal;
+    font-style: italic;
+    color: rgb(100,100,100);
+    text-align: center;
+}
+/* ---------------- DASHBOARD SUMMARY ---------------- */
+
+#dashboard-summary-wrapper {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin-bottom: 16px;
+}
+
+#dashboard-summary-box {
+    width: 900px;
+    background-color: #f7f7f7;
+    border: 1px solid #ccc;
+    padding: 6px 6px;
+    font-size: 14px;
+    line-height: 1.5;
+    color: rgb(75,75,75);
+    box-sizing: border-box;
+}
+
+#dashboard-summary-box p {
+    margin: 0;
 }
 
 /* ---------------- DROPDOWNS ---------------- */
@@ -45,6 +80,7 @@ h1 {
     text-align: right;
     white-space: nowrap;
     font-weight: bold;
+    color: rgb(75,75,75);
 }
 
 .filter-row select {
@@ -57,7 +93,6 @@ h1 {
 }
 
 /* ---------------- REGION IMAGE + NAME ---------------- */
-
 #region-info {
     position: relative;
     display: flex;
@@ -83,8 +118,89 @@ h1 {
     font-weight: bold;
     white-space: nowrap;
     pointer-events: none;
+    color: rgb(75,75,75);
+
 }
 
+/* ---------------- NORMALIZED TOGGLE-------------------- */
+#normalized-toggle input[type="checkbox"] {
+    margin: 0;
+}
+
+#normalized-toggle {
+
+    font-size: 0.9em;
+}
+
+#normalized-toggle label {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+#normalized-toggle a {
+    font-size: 0.9em;
+}
+
+#normalized-link {
+    text-decoration: none;
+    font-size: 10px;
+    color: rgb(100,150,255);
+}
+
+/* ---------------- NORMALIZED TABLE IN about.html -------------------- */
+.normalized-series-table {
+    width: 50%;
+    border-collapse: collapse;
+    margin-top: 1em;
+}
+
+.normalized-series-table th,
+.normalized-series-table td {
+    border: 1px solid #ccc;
+    padding: 10px 12px;
+    vertical-align: top;
+}
+
+.normalized-series-table th {
+    background-color: #f4f4f4;
+    text-align: left;
+    font-weight: bold;
+}
+
+.normalized-series-table td strong {
+    font-size: 1.05em;
+}
+
+.normalized-series-table .date-range {
+    font-size: 0.85em;
+    color: #555;
+    font-style: italic;
+}
+
+
+/* ---------------- ABOUT DIV-------------------- */
+#about-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 6px 26%;
+}
+
+#about {
+    font-size: 10px;
+    color: rgb(100,150,255);
+    text-align: left;
+    font-style: italic;
+}
+
+/* ---------------- ABOUT LINK-------------------- */
+#about-link {
+    text-decoration: none;
+    color: inherit;
+}
 
 /* ---------------- SEPARATOR ---------------- */
 
