@@ -15,7 +15,7 @@
 
 <body>
 
-<h1>LDS Statistics Dashboard</h1>
+<h1>LDS <em>Facts and Statistics</em> Dashboard</h1>
 <h2 class="dashboard-subtitle">
     A visual summary of the Facts and Statistics pages of The Church of Jesus Christ of Latter-day Saints.
 </h2>
@@ -66,12 +66,21 @@
     <div id="about">
         <a id="about-link" target="_blank" href="about.html">About this Site</a>
     </div>
-    <div id="normalized-toggle">
-        <label>
-            <input type="checkbox" id="use-normalized" checked>
-            Use Normalized Data
-            (<a id="normalized-link" target="_blank" href="about.html#normalized-series">what's this?</a>)
-        </label>
+
+    <div id="about-right">
+        <div id="normalized-toggle">
+            <label>
+                <input type="checkbox" id="use-normalized" checked>
+                Use Normalized Data
+                (<a id="normalized-link" target="_blank" href="about.html#normalized-series">what's this?</a>)
+            </label>
+        </div>
+        <div id="share-link">
+            <span id="share-status" aria-live="polite"></span>
+            <button id="copy-share-link" type="button">
+                Share this data with a link
+            </button>
+        </div>
     </div>
 
 </div>

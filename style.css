@@ -150,6 +150,35 @@ h1 {
     color: rgb(100,150,255);
 }
 
+/* ---------------- SHARE LINK -------------------- */
+
+#share-link {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    font-size: 12px;
+}
+
+#copy-share-link {
+    font-size: 12px;
+    padding: 4px 4px;
+    border: 1px solid #bbb;
+    background: #f8f8f8;
+    cursor: pointer;
+    border-radius: 4px;
+    white-space: nowrap;
+    margin-top: 6px;
+}
+
+#copy-share-link:hover {
+    background: #eaeaea;
+}
+
+#share-status {
+    font-size: 11px;
+    color: rgb(90, 140, 90);
+}
+
 /* ---------------- NORMALIZED TABLE IN about.html -------------------- */
 .normalized-series-table {
     width: 50%;
@@ -184,7 +213,7 @@ h1 {
 /* ---------------- ABOUT DIV-------------------- */
 #about-row {
     display: flex;
-    align-items: center;
+    align-items: flex-end;
     justify-content: space-between;
     margin: 6px 26%;
 }
@@ -194,6 +223,15 @@ h1 {
     color: rgb(100,150,255);
     text-align: left;
     font-style: italic;
+}
+
+/* ---------------- ABOUT RIGHT COLUMN -------------------- */
+
+#about-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
 }
 
 /* ---------------- ABOUT LINK-------------------- */

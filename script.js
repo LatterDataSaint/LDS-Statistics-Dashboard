@@ -5,6 +5,140 @@ const SERIES_A_COLOR = "#1f77b4"; // Plotly default blue
 const SERIES_B_COLOR = "#ff7f0e"; // Plotly default orange
 const PER_COLOR      = "#2ca02c"; // Plotly default green
 
+// ------------------ LINK CREATION ------------------ //
+function encodeCfg(obj) {
+    return btoa(JSON.stringify(obj));
+}
+
+function decodeCfg(str) {
+    try {
+        return JSON.parse(atob(str));
+    } catch {
+        return null;
+    }
+}
+
+function buildShareURL() {
+    const params = new URLSearchParams();
+
+    // ---- Visible geography ----
+    const continent = document.getElementById("continent")?.value;
+    const country   = document.getElementById("country")?.value;
+    const state     = document.getElementById("state")?.value;
+
+    if (continent) params.set("cont", continent);
+    if (country)   params.set("cntry", country);
+    if (state)     params.set("state", state);
+
+    // ---- Encoded config ----
+    const cfg = {
+        v: 1,
+        sy: parseInt(document.getElementById("yearStart")?.value, 10),
+        ey: parseInt(document.getElementById("yearEnd")?.value, 10),
+        n: isNormalizedMode() ? 1 : 0,
+        a: document.getElementById("seriesA")?.value,
+        b: document.getElementById("seriesB")?.value
+    };
+
+    params.set("cfg", encodeCfg(cfg));
+
+    return `${window.location.origin}${window.location.pathname}?${params.toString()}`;
+}
+
+// ------------------ LOAD CUSTOM LINK ------------------ //
+function parseShareURL() {
+    const params = new URLSearchParams(window.location.search);
+
+    const state = {
+        continent: params.get("cont"),
+        country: params.get("cntry"),
+        state: params.get("state"),
+        cfg: null
+    };
+
+    const cfgRaw = params.get("cfg");
+    if (cfgRaw) {
+        state.cfg = decodeCfg(cfgRaw);
+    }
+
+    return state;
+}
+
+function applyShareState(shareState) {
+    if (!shareState) return;
+
+    // ---------------- Geography ----------------
+    if (shareState.continent) {
+        const contSel = document.getElementById("continent");
+        if (contSel && [...contSel.options].some(o => o.value === shareState.continent)) {
+            contSel.value = shareState.continent;
+        }
+    }
+
+    updateCountryDropdown();
+
+    if (shareState.country) {
+        const countrySel = document.getElementById("country");
+        if (countrySel && [...countrySel.options].some(o => o.value === shareState.country)) {
+            countrySel.value = shareState.country;
+        }
+    }
+
+    updateStateDropdown();
+
+    if (shareState.state) {
+        const stateSel = document.getElementById("state");
+        if (stateSel && [...stateSel.options].some(o => o.value === shareState.state)) {
+            stateSel.value = shareState.state;
+        }
+    }
+
+    // ---------------- Encoded config ----------------
+    const cfg = shareState.cfg;
+    if (cfg) {
+        if (Number.isFinite(cfg.sy)) {
+            const ys = document.getElementById("yearStart");
+            if (ys && [...ys.options].some(o => Number(o.value) === cfg.sy)) {
+                ys.value = cfg.sy;
+            }
+        }
+
+        if (Number.isFinite(cfg.ey)) {
+            const ye = document.getElementById("yearEnd");
+            if (ye && [...ye.options].some(o => Number(o.value) === cfg.ey)) {
+                ye.value = cfg.ey;
+            }
+        }
+
+        const normCb = document.getElementById("use-normalized");
+        if (normCb && typeof cfg.n === "number") {
+            normCb.checked = !!cfg.n;
+        }
+    }
+
+    // IMPORTANT: series depend on region + normalization
+    updateSeriesDropdownsForCurrentSelection(true);
+
+    if (cfg) {
+        const selA = document.getElementById("seriesA");
+        const selB = document.getElementById("seriesB");
+
+        if (selA && cfg.a && [...selA.options].some(o => o.value === cfg.a)) {
+            selA.value = cfg.a;
+        }
+
+        if (selB && cfg.b && [...selB.options].some(o => o.value === cfg.b)) {
+            selB.value = cfg.b;
+        }
+    }
+
+    // Final render
+    updateRegionDisplay();
+    updateChart();
+    updateTable();
+}
+
+
 // ------------------ NORMALIZATION TOGGLE HELPERS------------------ //
 
 function isNormalizedMode() {
@@ -14,7 +148,6 @@ function isNormalizedMode() {
 
 function reportNormalizationState(context = "") {
     const state = isNormalizedMode() ? "ON (normalized)" : "OFF (raw)";
-    //console.log(`Normalization ${context}: ${state}`);
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -166,6 +299,7 @@ function toNumberOrNull(v) {
 async function loadData() {
     const response = await fetch("data/lds_fs_countries_latest.csv");
     const text = await response.text();
+    const shareState = parseShareURL();
 
     rawData = Papa.parse(text, { header: true }).data;
 
@@ -209,6 +343,7 @@ async function loadData() {
     updateRegionDisplay();
     updateChart();
     updateTable();
+    applyShareState(shareState);
 }
 
 async function loadOperatingTemplesWorld() {
@@ -331,6 +466,29 @@ function normalizeSeriesHeaders(rawHeaders) {
     return Array.from(out);
 }
 
+// ---------------------- CREATE LINK FOR SHARING ------------------------ //
+
+document.addEventListener("DOMContentLoaded", () => {
+    const btn = document.getElementById("copy-share-link");
+    const status = document.getElementById("share-status");
+
+    if (!btn) return;
+
+    btn.addEventListener("click", async () => {
+        const url = buildShareURL();
+
+        try {
+            await navigator.clipboard.writeText(url);
+            status.textContent = "Link copied";
+        } catch {
+            status.textContent = "Copy failed";
+        }
+
+        setTimeout(() => {
+            status.textContent = "";
+        }, 2000);
+    });
+});
 
 
 // ---------------------- FILTER POPULATION ------------------------ //
