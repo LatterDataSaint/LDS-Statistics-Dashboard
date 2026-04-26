@@ -76,21 +76,39 @@ function attachTableRowHandlers() {
             continentSel.value = continent;
             continentSel.dispatchEvent(new Event("change"));
 
-            // --- Set country (after continent updates country list) ---
+            // --- Set country after continent dropdown repopulates ---
             setTimeout(() => {
-                countrySel.value = country;
-                countrySel.dispatchEvent(new Event("change"));
+                const allLabel = `${continent} (all countries)`;
+                const targetCountry = (country === allLabel) ? allLabel : country;
 
-                // --- Set state (if applicable) ---
-                setTimeout(() => {
-                    if (state && state !== "-") {
-                        stateSel.value = state;
-                    } else {
-                        stateSel.value = "";
+                const trySetCountry = () => {
+                    const options = [...countrySel.options];
+                    const match = options.find(o =>
+                        o.value === targetCountry || o.text === targetCountry
+                    );
+
+                    if (!match) {
+                        // dropdown may still be rebuilding
+                        setTimeout(trySetCountry, 10);
+                        return;
                     }
-                    stateSel.dispatchEvent(new Event("change"));
-                }, 0);
 
+                    countrySel.value = match.value;
+                    countrySel.dispatchEvent(new Event("change"));
+
+                    // --- Set state after country dropdown/state dropdown updates ---
+                    setTimeout(() => {
+                        if (state && state !== "-") {
+                            stateSel.value = state;
+                        } else {
+                            stateSel.value = "";
+                        }
+
+                        stateSel.dispatchEvent(new Event("change"));
+                    }, 0);
+                };
+
+                trySetCountry();
             }, 0);
         });
     });
@@ -113,6 +131,11 @@ function getSelectedRegionKey() {
     const k = document.getElementById("country").value;
     const s = document.getElementById("state").value;
 
+    // 🔥 Handle "(all countries)"
+    if (k && k.includes("(all countries)")) {
+        return `${c}|ALL|-`;
+    }
+
     let statePart = "-";
     if ((k === "United States" || k === "Canada") && s && s !== "All") {
         statePart = s;
@@ -132,12 +155,15 @@ function buildTableData() {
     const yearStart = parseInt(document.getElementById("yearStart").value, 10);
     const yearEnd   = parseInt(document.getElementById("yearEnd").value, 10);
 
-    // Group rows by continent|country|state
+    const filtered = rawData.filter(r =>
+        r.year >= yearStart &&
+        r.year <= yearEnd
+    );
+
     const groups = new Map();
 
-    for (const r of rawData) {
+    for (const r of filtered) {
         if (!r || !r.continent || !r.country || !isFinite(r.year)) continue;
-        if (r.year < yearStart || r.year > yearEnd) continue;
 
         let stateVal = "-";
         if (r.country === "United States" || r.country === "Canada") {
@@ -151,40 +177,76 @@ function buildTableData() {
 
     const rows = [];
 
+    // ---------------- CONTINENT AGGREGATION ----------------
+    const continentAggregates = new Map();
+
+    for (const r of filtered) {
+        if (!r || !r.continent || !isFinite(r.year)) continue;
+
+        if (r.continent === "Global") continue;
+        if (r.state && r.state.trim() !== "") continue;
+        if (r.country && r.country.includes("(all countries)")) continue;
+
+        const key = r.continent;
+
+        if (!continentAggregates.has(key)) {
+            continentAggregates.set(key, []);
+        }
+
+        continentAggregates.get(key).push(r);
+    }
+
+    // ---------------- COUNTRY / STATE ROWS ----------------
     for (const [key, records] of groups.entries()) {
         const [continent, country, state] = key.split("|");
 
-        // Sort chronologically (same as chart)
         records.sort((a, b) => a.date - b.date);
 
-        // Resolve normalized / gap-filled series
-        const aSeries = getSeriesData(records, aField);
-        const bSeries = getSeriesData(records, bField);
-
-        // ---- Series A start/end ----
-        const aStartIdx = records.findIndex(r => r.year === yearStart);
-        const aEndIdx   = records.map(r => r.year).lastIndexOf(yearEnd);
-
-        const aStart = aStartIdx >= 0 ? aSeries[aStartIdx] ?? null : null;
-        const aEnd   = aEndIdx   >= 0 ? aSeries[aEndIdx]   ?? null : null;
-
-        // ---- Series B start/end ----
-        const bStartIdx = records.findIndex(r => r.year === yearStart);
-        const bEndIdx   = records.map(r => r.year).lastIndexOf(yearEnd);
-
-        const bStart = bStartIdx >= 0 ? bSeries[bStartIdx] ?? null : null;
-        const bEnd   = bEndIdx   >= 0 ? bSeries[bEndIdx]   ?? null : null;
-
-        // ---- Membership (latest in range, unchanged logic) ----
-        const membershipRow = [...records].reverse().find(r =>
-            isNumeric(r["Total Church Membership"])
+        const aSeries = records.map(r =>
+            isNumeric(r[aField]) ? Number(r[aField]) : null
         );
 
-        const membershipLatest = membershipRow
-            ? Number(membershipRow["Total Church Membership"])
+        const bSeries = records.map(r =>
+            isNumeric(r[bField]) ? Number(r[bField]) : null
+        );
+
+        const startYearRows = records.filter(r => r.year === yearStart);
+
+        const startYearRecord = startYearRows.length
+            ? startYearRows.reduce((latest, r) =>
+                (!latest || r.timestamp > latest.timestamp) ? r : latest
+            , null)
             : null;
 
-        // ---- Ratio (end values) ----
+        const endIdx   = [...records].map(r => r.year).lastIndexOf(yearEnd);
+
+        const aStart =
+            startYearRecord && isNumeric(startYearRecord[aField])
+                ? Number(startYearRecord[aField])
+                : null;
+
+        const bStart =
+            startYearRecord && isNumeric(startYearRecord[bField])
+                ? Number(startYearRecord[bField])
+                : null;
+
+        const aEnd   = endIdx   >= 0 ? aSeries[endIdx]   ?? null : null;
+        const bEnd   = endIdx   >= 0 ? bSeries[endIdx]   ?? null : null;
+
+        //const endYearRecord = records.find(r => r.year === yearEnd);
+        const endYearRows = records.filter(r => r.year === yearEnd);
+
+        const endYearRecord = endYearRows.length
+            ? endYearRows.reduce((latest, r) =>
+                (!latest || r.timestamp > latest.timestamp) ? r : latest
+            , null)
+            : null;
+
+        const membershipLatest =
+            endYearRecord && isNumeric(endYearRecord["Total Church Membership"])
+                ? Number(endYearRecord["Total Church Membership"])
+                : null;
+
         const ratio =
             aEnd != null && bEnd != null && bEnd !== 0
                 ? aEnd / bEnd
@@ -195,18 +257,56 @@ function buildTableData() {
             continent,
             country,
             state,
-
             membershipLatest,
-
             aStart,
             aEnd,
             aPct: pctChange(aStart, aEnd),
-
             bStart,
             bEnd,
             bPct: pctChange(bStart, bEnd),
-
             ratio
+        });
+    }
+
+    // ---------------- CONTINENT TOTAL ROWS ----------------
+    for (const [continent, records] of continentAggregates.entries()) {
+
+        // ✅ USE SHARED FUNCTION (THIS IS THE FIX)
+        const aggRecords = aggregateByYearCountry(records, aField, bField);
+
+        const startRow = aggRecords.find(r => r.year === yearStart);
+        const endRow   = aggRecords.find(r => r.year === yearEnd);
+
+        const aStart = startRow ? startRow.aVal : null;
+        const aEnd   = endRow   ? endRow.aVal   : null;
+
+        const bStart = startRow ? startRow.bVal : null;
+        const bEnd   = endRow   ? endRow.bVal   : null;
+
+        const ratio =
+            aEnd != null && bEnd != null && bEnd !== 0
+                ? aEnd / bEnd
+                : null;
+
+        const endYearRecord = aggRecords.find(r => r.year === yearEnd);
+
+        const membershipLatest =
+            endYearRecord ? endYearRecord.membershipVal : null;
+
+        rows.push({
+            key: `${continent}|ALL|-`,
+            continent,
+            country: `${continent} (all countries)`,
+            state: "-",
+            membershipLatest,
+            aStart,
+            aEnd,
+            aPct: pctChange(aStart, aEnd),
+            bStart,
+            bEnd,
+            bPct: pctChange(bStart, bEnd),
+            ratio,
+            isAggregate: true
         });
     }
 
@@ -254,6 +354,14 @@ function renderStatsTable({ rows }) {
         if (a == null) return 1;
         if (b == null) return -1;
 
+        // 🔑 Handle strings vs numbers differently
+        if (typeof a === "string" && typeof b === "string") {
+            return tableSort.dir === "asc"
+                ? a.localeCompare(b)
+                : b.localeCompare(a);
+        }
+
+        // Default numeric sort
         return tableSort.dir === "asc" ? a - b : b - a;
     });
 
@@ -356,61 +464,16 @@ function renderStatsTable({ rows }) {
 }
 
 function buildChartDataTable() {
-    const selA = document.getElementById("seriesA").value;
-    const selB = document.getElementById("seriesB").value;
-
-    const yearStart = parseInt(document.getElementById("yearStart").value, 10);
-    const yearEnd   = parseInt(document.getElementById("yearEnd").value, 10);
-
-    // SAME filtering logic as updateChart
-    const rows = rawData.filter(r =>
-        isFinite(r.year) &&
-        r.year >= yearStart &&
-        r.year <= yearEnd &&
-        (
-            document.getElementById("continent").value === "Global"
-                ? r.continent === "Global"
-                : r.continent === document.getElementById("continent").value
-        ) &&
-        (
-            document.getElementById("country").value === "World"
-                ? r.country === "World"
-                : r.country === document.getElementById("country").value
-        ) &&
-        (
-            (r.country === "United States" || r.country === "Canada")
-                ? (
-                    document.getElementById("state").value === "All"
-                        ? (r.state == null || r.state === "")
-                        : r.state === document.getElementById("state").value
-                )
-                : true
-        )
-    );
-
-    // IMPORTANT: same sort as chart
-    rows.sort((a, b) => a.date - b.date);
-
-    // ✅ Use normalized / gap-filled data
-    const seriesA = getSeriesData(rows, selA);
-    const seriesB = getSeriesData(rows, selB);
-
-    return rows.map((r, i) => {
-        const a = seriesA[i];
-        const b = seriesB[i];
-
-        return {
-            timestamp: r.timestamp,
-            year: r.year,
-            month: r.date ? r.date.getMonth() + 1 : null,
-            day: r.date ? r.date.getDate() : null,
-            aVal: a,
-            bVal: b,
-            ratio: (a != null && b != null && b !== 0) ? a / b : null
-        };
-    });
+    return buildTimeSeries().map(r => ({
+        timestamp: r.timestamp,
+        year: r.year,
+        month: r.date ? r.date.getMonth() + 1 : null,
+        day: r.date ? r.date.getDate() : null,
+        aVal: r.aVal,
+        bVal: r.bVal,
+        ratio: r.ratio
+    }));
 }
-
 
 function renderChartDataTable(rows) {
     const container = document.getElementById("stats");

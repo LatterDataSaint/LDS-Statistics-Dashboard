@@ -271,6 +271,18 @@ h1 {
     cursor: pointer;
 }
 
+/* ---------------- AGGREGATION NOTE ---------------- */
+#aggregation-note {
+    text-align: center;
+    font-size: 10pt;
+    font-style: italic;
+    color: #444;
+    margin: 10px auto 14px auto;
+    max-width: 600px;
+    height: 18px;
+    line-height: 18px;
+}
+
 /* ---------------- CHART ---------------- */
 
 #chart {
@@ -456,6 +468,7 @@ h1 {
     border-collapse: collapse;
     width: 100%;
     border: 1px solid #ccc;
+    font-size: 10pt;
 }
 
 #stats table th,
