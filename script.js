@@ -1466,13 +1466,19 @@ function updateChart() {
         },
 
         yaxis: {
-            title: seriesAField,
+            title: {
+                text: `<b>${seriesAField}</b>`,
+                font: { color: SERIES_A_COLOR }
+            },
             domain: [0.5, 1],
-			zeroline: false,
-			showline: false
+            zeroline: false,
+            showline: false
         },
         yaxis2: {
-            title: seriesBField,
+            title: {
+                text: `<b>${seriesBField}</b>`,
+                font: { color: SERIES_B_COLOR }
+            },
             overlaying: "y",
             side: "right",
 			zeroline: false,
@@ -1495,7 +1501,8 @@ function updateChart() {
 
 		yaxis3: {
 			title: {
-				text: `${seriesAField}<br>per ${seriesBField}`,
+				text: `<b>${seriesAField}<br>per ${seriesBField}</b>`,
+                font: { color: PER_COLOR },
 				standoff: 10
 			},
 			domain: [0.15, 0.40],
